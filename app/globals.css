@@ -1,26 +1,185 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: "Poppins", var(--font-sans);
   --font-mono: var(--font-geist-mono);
+  --font-heading: "Poppins", var(--font-sans);
+  
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  
+  /* Semantic States */
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Custom Color Tokens */
+  --color-charcoal: var(--charcoal);
+  --color-cool-steel: var(--cool-steel);
+  --color-black: var(--black);
+  --color-cool-steel-2: var(--cool-steel-2);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  /* Brand Palette Variables */
+  --charcoal: #535759;
+  --cool-steel: #9A9D9E;
+  --black: #000000;
+  --cool-steel-2: #9FA0A2;
+
+  /* Main Layout */
+  --background: #f7f6f2; 
+  --foreground: #000000; 
+
+  --surface: #ffffff;
+  --surface-2: #f4f4f2;
+
+  /* Shadcn Component Logic */
+  --card: #ffffff; 
+  --card-foreground: #000000; 
+  --popover: #ffffff; 
+  --popover-foreground: #000000; 
+
+  /* Primary Color - Charcoal Theme */
+  --primary: #535759; 
+  --primary-foreground: #ffffff; 
+
+  /* Secondary Color - Cool Steel */
+  --secondary: #9A9D9E; 
+  --secondary-foreground: #000000; 
+
+  /* Muted Elements */
+  --muted: #f4f4f2; 
+  --muted-foreground: #535759; 
+
+  /* Accents */
+  --accent: #e6e7e8; 
+  --accent-foreground: #535759; 
+
+  /* --- DISTINCT SEMANTIC STATES --- */
+  --destructive: #a12c7b; 
+  --destructive-foreground: #ffffff; 
+
+  --warning: oklch(0.76 0.18 75); 
+  --warning-bg: oklch(0.96 0.04 80); 
+
+  --success: oklch(0.68 0.18 150); 
+  --success-bg: oklch(0.95 0.03 155); 
+
+  /* Interface UI elements */
+  --border: #9A9D9E; 
+  --input: #9A9D9E; 
+  --ring: #535759; 
+  --radius: 0.625rem;
+
+  /* Sidebar Colors */
+  --sidebar: #ffffff; 
+  --sidebar-foreground: #000000; 
+  --sidebar-primary: #535759;
+  --sidebar-border: #9A9D9E; 
+  --sidebar-ring: #535759;
+}
+
+.dark {
+  /* Main Layout */
+  --background: #0d0d0d; 
+  --foreground: #e6e7e8; 
+
+  --surface: #141414;
+  --surface-2: #1c1c1c;
+
+  /* Shadcn Component Logic */
+  --card: #141414; 
+  --card-foreground: #e6e7e8;
+  --popover: #141414;
+  --popover-foreground: #e6e7e8;
+
+  /* Primary Color - Adapted for dark background contrast */
+  --primary: #9FA0A2; 
+  --primary-foreground: #0d0d0d;
+
+  /* Secondary Color */
+  --secondary: #535759;
+  --secondary-foreground: #e6e7e8;
+
+  /* Muted Elements */
+  --muted: #1c1c1c;
+  --muted-foreground: #9A9D9E;
+
+  /* Accents */
+  --accent: #222425;
+  --accent-foreground: #e6e7e8;
+
+  /* --- DISTINCT SEMANTIC STATES (DARK MODE) --- */
+  --destructive: #d163a7; 
+  --destructive-foreground: #ffffff;
+
+  --warning: oklch(0.79 0.16 75); 
+  --warning-bg: oklch(0.24 0.05 75); 
+
+  --success: oklch(0.72 0.15 150);
+  --success-bg: oklch(0.22 0.04 150);
+
+  /* Interface UI elements */
+  --border: #2d2f30; 
+  --input: #2d2f30;
+  --ring: #9FA0A2;
+
+  /* Sidebar Colors */
+  --sidebar: #141414;
+  --sidebar-foreground: #e6e7e8;
+  --sidebar-primary: #9FA0A2;
+  --sidebar-border: #2d2f30;
+  --sidebar-ring: #9FA0A2;
+}
+
+
+
+html{
+  scroll-behavior: smooth;
+  scrollbar-width: none;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Poppins', Arial, Helvetica, sans-serif;
 }

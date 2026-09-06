@@ -1,0 +1,1372 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/
+  favicon.ico
+  globals.css
+  layout.tsx
+  page.tsx
+components/
+  invoice-preview.tsx
+  theme-toggle.tsx
+lib/
+  generate-invoice-pdf.ts
+public/
+  logo.png
+.gitignore
+AGENTS.md
+CLAUDE.md
+eslint.config.mjs
+jspdf.autotable.d.ts
+next.config.ts
+package.json
+postcss.config.mjs
+README.md
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="components/invoice-preview.tsx">
+import React from "react";
+import Image from "next/image";
+import { InvoiceItem } from "@/lib/generate-invoice-pdf";
+
+interface InvoicePreviewProps {
+  fromName: string;
+  invoiceNumber: string;
+  fromEmail: string;
+  issueDate: string;
+  dueDate: string;
+  clientName: string;
+  clientAddress: string;
+  currency: string;
+  taxRate: number;
+  fromAddress: string;
+  vatReg: string;
+  fromPhone: string;
+  notes: string;
+  items: InvoiceItem[];
+  logoSrc?: string;
+}
+
+export default function InvoicePreview({
+  fromName,
+  invoiceNumber,
+  fromEmail,
+  issueDate,
+  dueDate,
+  clientName,
+  clientAddress,
+  currency,
+  taxRate,
+  fromAddress,
+  vatReg,
+  fromPhone,
+  notes,
+  items,
+  logoSrc = "/favicon.ico",
+}: InvoicePreviewProps) {
+  // Calculate subtotal, tax amount, and final total based on line items and tax rate
+  const subtotal: number = items.reduce((acc: number, item: InvoiceItem) => acc + item.quantity * item.price, 0);
+  const taxAmount: number = (subtotal * (taxRate || 0)) / 100;
+  const total: number = subtotal + taxAmount;
+
+  return (
+    <div className="bg-white text-gray-900 rounded-xl p-6 flex-1 overflow-y-auto shadow-inner text-sm space-y-6">
+      {/* Top Header Section: Logo, Business Info, and Invoice Meta */}
+      <div className="flex justify-between items-start">
+        <div className="flex items-start gap-3">
+          <div className="relative w-12 h-12 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 p-1">
+            <Image 
+              src={logoSrc} 
+              alt="Logo" 
+              fill 
+              className="object-contain" 
+            />
+          </div>
+          <div>
+            <h3 className="text-xl font-extrabold">{fromName || "Business Name"}</h3>
+            <p className="text-xs text-gray-500 whitespace-pre-line mt-1">{fromAddress}</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <h4 className="text-lg font-bold">INVOICE</h4>
+          <p className="text-gray-500"># {invoiceNumber}</p>
+          <p className="text-xs text-gray-500 mt-1">Date: {issueDate}</p>
+          {dueDate && <p className="text-xs text-gray-500">Due: {dueDate}</p>}
+        </div>
+      </div>
+
+      {/* Sender and Billed To Information Box */}
+      <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase">From</p>
+          <p className="font-medium">{fromEmail}</p>
+          {fromPhone && <p className="text-xs text-gray-600">{fromPhone}</p>}
+          {vatReg && <p className="text-xs text-gray-600">VAT Reg: {vatReg}</p>}
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase">Billed To</p>
+          <p className="font-medium">{clientName || "Client Name"}</p>
+          <p className="text-xs text-gray-500 whitespace-pre-line mt-1">{clientAddress}</p>
+        </div>
+      </div>
+
+      {/* Line Items Table */}
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="bg-gray-100 border-b border-gray-200">
+            <th className="p-2 text-left font-semibold">Description</th>
+            <th className="p-2 text-center font-semibold">Qty</th>
+            <th className="p-2 text-right font-semibold">Unit Price</th>
+            <th className="p-2 text-right font-semibold">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item: InvoiceItem) => (
+            <tr key={item.id} className="border-b border-gray-100">
+              <td className="p-2">{item.description || "—"}</td>
+              <td className="p-2 text-center">{item.quantity}</td>
+              <td className="p-2 text-right">{currency} {Number(item.price).toFixed(2)}</td>
+              <td className="p-2 text-right">{currency} {(item.quantity * item.price).toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* Totals Summary Section */}
+      <div className="flex flex-col items-end space-y-1 pt-2">
+        <div className="flex justify-between w-48 text-gray-600">
+          <span>Subtotal:</span>
+          <span>{currency} {subtotal.toFixed(2)}</span>
+        </div>
+        {taxRate > 0 && (
+          <div className="flex justify-between w-48 text-gray-600">
+            <span>VAT (${taxRate}%):</span>
+            <span>{currency} {taxAmount.toFixed(2)}</span>
+          </div>
+        )}
+        <div className="flex justify-between w-48 font-bold text-base border-t border-gray-300 pt-1">
+          <span>Total:</span>
+          <span>{currency} {total.toFixed(2)}</span>
+        </div>
+      </div>
+
+      {/* Optional Notes Section */}
+      {notes && (
+        <div className="border-t border-dashed border-gray-200 pt-3 text-xs text-gray-500">
+          <span className="font-semibold">Notes: </span>{notes}
+        </div>
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="components/theme-toggle.tsx">
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Sun, Moon } from 'lucide-react';
+
+export default function ThemeToggle() {
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme');
+      if (saved) return saved;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  return (
+    <button 
+      onClick={toggleTheme}
+      className="w-11 h-11 rounded-full border border-border bg-surface-2 grid place-items-center hover:bg-accent transition-colors"
+      aria-label="Toggle theme"
+    >
+      {theme === 'dark' ? <Sun size={20} className="text-yellow-300" /> : <Moon size={20} />}
+    </button>
+  );
+}
+</file>
+
+<file path="lib/generate-invoice-pdf.ts">
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+export interface InvoiceItem {
+  id: string;
+  description: string;
+  quantity: number;
+  price: number;
+}
+
+export interface GeneratePDFProps {
+  fromName: string;
+  invoiceNumber: string;
+  fromEmail: string;
+  issueDate: string;
+  dueDate: string;
+  clientName: string;
+  clientAddress: string;
+  currency: string;
+  taxRate: number;
+  fromAddress: string;
+  vatReg: string;
+  fromPhone: string;
+  notes: string;
+  items: InvoiceItem[];
+  logoSrc?: string;
+}
+
+// Helper to convert an image URL into a base64 string so jsPDF can embed it
+const getBase64ImageFromURL = async (url: string): Promise<string | null> => {
+  try {
+    const res: Response = await fetch(url);
+    const blob: Blob = await res.blob();
+    return new Promise<string | null>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = (): void => resolve(reader.result as string);
+      reader.onerror = (): void => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+};
+
+export async function generateInvoicePDF({
+  fromName,
+  invoiceNumber,
+  fromEmail,
+  issueDate,
+  dueDate,
+  clientName,
+  clientAddress,
+  currency,
+  taxRate,
+  fromAddress,
+  vatReg,
+  fromPhone,
+  notes,
+  items,
+  logoSrc = "/favicon.ico",
+}: GeneratePDFProps): Promise<void> {
+  // Initialize the PDF document in portrait A4 size
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  });
+
+  doc.setFont("helvetica");
+
+  // Load and add the company logo if available
+  const base64Logo: string | null = await getBase64ImageFromURL(logoSrc);
+  if (base64Logo) {
+    try {
+      doc.addImage(base64Logo, "PNG", 14, 12, 16, 16);
+    } catch {
+      // Fallback if image format fails
+    }
+  }
+
+  const textStartX: number = base64Logo ? 34 : 14;
+
+  // Draw business name and invoice header details
+  doc.setFontSize(18);
+  doc.setFont("helvetica", "bold");
+  doc.text(fromName || "Business Name", textStartX, 20);
+
+  doc.setFontSize(20);
+  doc.text("INVOICE", 196, 20, { align: "right" });
+  
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(100);
+  doc.text(`# ${invoiceNumber}`, 196, 26, { align: "right" });
+  doc.text(`Date: ${issueDate}`, 196, 32, { align: "right" });
+  if (dueDate) {
+    doc.text(`Due: ${dueDate}`, 196, 38, { align: "right" });
+  }
+
+  // Draw a horizontal divider line
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.5);
+  doc.line(14, 44, 196, 44);
+
+  // Draw a background box for sender and client info
+  doc.setFillColor(249, 250, 251);
+  doc.setDrawColor(229, 231, 235);
+  doc.roundedRect(14, 48, 182, 32, 3, 3, "FD");
+
+  // Add Sender ("From") info on the left
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.setTextColor(107, 114, 128);
+  doc.text("FROM", 18, 55);
+
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(17, 24, 39);
+  if (fromEmail) {
+    doc.text(fromEmail, 18, 61);
+  }
+  if (fromPhone) {
+    doc.text(`Phone: ${fromPhone}`, 18, 67);
+  }
+  if (vatReg) {
+    doc.text(`VAT Reg: ${vatReg}`, 18, 73);
+  }
+
+  // Add Client ("Billed To") info on the right
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(107, 114, 128);
+  doc.text("BILLED TO", 110, 55);
+
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(17, 24, 39);
+  doc.text(clientName || "Client Name", 110, 61);
+  
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(55, 65, 81);
+  const splitClientAddress: string[] = doc.splitTextToSize(clientAddress || "", 80);
+  doc.text(splitClientAddress, 110, 67);
+
+  // Calculate subtotal and tax amounts
+  const subtotal: number = items.reduce((acc: number, item: InvoiceItem) => acc + item.quantity * item.price, 0);
+  const taxAmount: number = (subtotal * (taxRate || 0)) / 100;
+
+  // Format table rows for items
+  const tableRows: (string | number)[][] = items.map((item: InvoiceItem) => [
+    item.description || "—",
+    item.quantity,
+    `${currency} ${Number(item.price).toFixed(2)}`,
+    `${currency} ${(item.quantity * item.price).toFixed(2)}`,
+  ]);
+
+  const headFillColor: [number, number, number] = [243, 244, 246];
+  const headTextColor: [number, number, number] = [17, 24, 39];
+  const bodyTextColor: [number, number, number] = [55, 65, 81];
+
+  // Generate the line items table using autoTable
+  autoTable(doc, {
+    startY: 86,
+    head: [["Description", "Qty", "Unit Price", "Total"]],
+    body: tableRows,
+    theme: "striped",
+    headStyles: {
+      fillColor: headFillColor,
+      textColor: headTextColor,
+      fontStyle: "bold",
+      fontSize: 9,
+    },
+    bodyStyles: {
+      fontSize: 9,
+      textColor: bodyTextColor,
+    },
+    columnStyles: {
+      0: { cellWidth: "auto" },
+      1: { cellWidth: 20, halign: "center" },
+      2: { cellWidth: 35, halign: "right" },
+      3: { cellWidth: 35, halign: "right" },
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+  // Calculate totals block position based on table height
+  const typedDoc = doc as jsPDF & { lastAutoTable: { finalY: number } };
+  const finalY: number = typedDoc.lastAutoTable.finalY + 6;
+
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(75, 85, 99);
+
+  const summaryXLabel: number = 135;
+  const summaryXVal: number = 196;
+
+  // Render Subtotal
+  doc.text("Subtotal:", summaryXLabel, finalY);
+  doc.text(`${currency} ${subtotal.toFixed(2)}`, summaryXVal, finalY, { align: "right" });
+
+  let nextY: number = finalY + 6;
+  if (taxRate > 0) {
+    doc.text(`VAT (${taxRate}%):`, summaryXLabel, nextY);
+    doc.text(`${currency} ${taxAmount.toFixed(2)}`, summaryXVal, nextY, { align: "right" });
+    nextY += 6;
+  }
+
+  // Draw separator line above final total
+  doc.setDrawColor(209, 213, 219);
+  doc.line(summaryXLabel, nextY - 4, summaryXVal, nextY - 4);
+
+  // Render Grand Total
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(17, 24, 39);
+  doc.text("Total:", summaryXLabel, nextY);
+  doc.text(`${currency} ${(subtotal + taxAmount).toFixed(2)}`, summaryXVal, nextY, { align: "right" });
+
+  // Render notes section if notes are provided
+  if (notes) {
+    const notesY: number = Math.max(nextY + 12, finalY + 20);
+    doc.setDrawColor(229, 231, 235);
+    doc.setLineDashPattern([2, 2], 0);
+    doc.line(14, notesY - 4, 196, notesY - 4);
+    doc.setLineDashPattern([], 0);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(107, 114, 128);
+    doc.text("Notes:", 14, notesY);
+
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(75, 85, 99);
+    const splitNotes: string[] = doc.splitTextToSize(notes, 180);
+    doc.text(splitNotes, 14, notesY + 5);
+  }
+
+  // Trigger browser download of the PDF file
+  doc.save(`Invoice_${invoiceNumber}.pdf`);
+}
+</file>
+
+<file path="jspdf.autotable.d.ts">
+declare module "jspdf-autotable" {
+  import { jsPDF } from "jsPDF";
+  
+  // Define permitted input types for a single table cell
+  type CellInput = string | number | null | undefined;
+  // A row is an array of cell input values
+  type RowInput = CellInput[];
+
+  // Options configuration interface for the autoTable plugin
+  interface UserOptions {
+    startY?: number;
+    head?: RowInput[];
+    body?: RowInput[];
+    foot?: RowInput[];
+    theme?: "striped" | "grid" | "plain";
+    headStyles?: Record<string, string | number>;
+    bodyStyles?: Record<string, string | number>;
+    [key: string]: unknown;
+  }
+
+  // Standalone autoTable function signature
+  function autoTable(doc: jsPDF, options: UserOptions): jsPDF;
+  export default autoTable;
+  
+  // Module augmentation to extend jsPDF prototype methods and properties
+  module "jspdf" {
+    interface jsPDF {
+      autoTable: (options: UserOptions) => jsPDF;
+      lastAutoTable: {
+        finalY: number;
+      };
+    }
+  }
+}
+</file>
+
+<file path="app/globals.css">
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Poppins", var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: "Poppins", var(--font-sans);
+  
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  
+  /* Semantic States */
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Custom Color Tokens */
+  --color-charcoal: var(--charcoal);
+  --color-cool-steel: var(--cool-steel);
+  --color-black: var(--black);
+  --color-cool-steel-2: var(--cool-steel-2);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* Brand Palette Variables */
+  --charcoal: #535759;
+  --cool-steel: #9A9D9E;
+  --black: #000000;
+  --cool-steel-2: #9FA0A2;
+
+  /* Main Layout */
+  --background: #f7f6f2; 
+  --foreground: #000000; 
+
+  --surface: #ffffff;
+  --surface-2: #f4f4f2;
+
+  /* Shadcn Component Logic */
+  --card: #ffffff; 
+  --card-foreground: #000000; 
+  --popover: #ffffff; 
+  --popover-foreground: #000000; 
+
+  /* Primary Color - Charcoal Theme */
+  --primary: #535759; 
+  --primary-foreground: #ffffff; 
+
+  /* Secondary Color - Cool Steel */
+  --secondary: #9A9D9E; 
+  --secondary-foreground: #000000; 
+
+  /* Muted Elements */
+  --muted: #f4f4f2; 
+  --muted-foreground: #535759; 
+
+  /* Accents */
+  --accent: #e6e7e8; 
+  --accent-foreground: #535759; 
+
+  /* --- DISTINCT SEMANTIC STATES --- */
+  --destructive: #a12c7b; 
+  --destructive-foreground: #ffffff; 
+
+  --warning: oklch(0.76 0.18 75); 
+  --warning-bg: oklch(0.96 0.04 80); 
+
+  --success: oklch(0.68 0.18 150); 
+  --success-bg: oklch(0.95 0.03 155); 
+
+  /* Interface UI elements */
+  --border: #9A9D9E; 
+  --input: #9A9D9E; 
+  --ring: #535759; 
+  --radius: 0.625rem;
+
+  /* Sidebar Colors */
+  --sidebar: #ffffff; 
+  --sidebar-foreground: #000000; 
+  --sidebar-primary: #535759;
+  --sidebar-border: #9A9D9E; 
+  --sidebar-ring: #535759;
+}
+
+.dark {
+  /* Main Layout */
+  --background: #0d0d0d; 
+  --foreground: #e6e7e8; 
+
+  --surface: #141414;
+  --surface-2: #1c1c1c;
+
+  /* Shadcn Component Logic */
+  --card: #141414; 
+  --card-foreground: #e6e7e8;
+  --popover: #141414;
+  --popover-foreground: #e6e7e8;
+
+  /* Primary Color - Adapted for dark background contrast */
+  --primary: #9FA0A2; 
+  --primary-foreground: #0d0d0d;
+
+  /* Secondary Color */
+  --secondary: #535759;
+  --secondary-foreground: #e6e7e8;
+
+  /* Muted Elements */
+  --muted: #1c1c1c;
+  --muted-foreground: #9A9D9E;
+
+  /* Accents */
+  --accent: #222425;
+  --accent-foreground: #e6e7e8;
+
+  /* --- DISTINCT SEMANTIC STATES (DARK MODE) --- */
+  --destructive: #d163a7; 
+  --destructive-foreground: #ffffff;
+
+  --warning: oklch(0.79 0.16 75); 
+  --warning-bg: oklch(0.24 0.05 75); 
+
+  --success: oklch(0.72 0.15 150);
+  --success-bg: oklch(0.22 0.04 150);
+
+  /* Interface UI elements */
+  --border: #2d2f30; 
+  --input: #2d2f30;
+  --ring: #9FA0A2;
+
+  /* Sidebar Colors */
+  --sidebar: #141414;
+  --sidebar-foreground: #e6e7e8;
+  --sidebar-primary: #9FA0A2;
+  --sidebar-border: #2d2f30;
+  --sidebar-ring: #9FA0A2;
+}
+
+
+
+html{
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Poppins', Arial, Helvetica, sans-serif;
+}
+</file>
+
+<file path="app/layout.tsx">
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "STOMRIM Investment CC",
+  description: "",
+};
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">{children}</body>
+    </html>
+  );
+}
+</file>
+
+<file path="app/page.tsx">
+"use client";
+
+import ThemeToggle from "@/components/theme-toggle";
+import InvoicePreview from "@/components/invoice-preview";
+import { generateInvoicePDF, InvoiceItem, GeneratePDFProps } from "@/lib/generate-invoice-pdf";
+import { Play, X, Trash2, Plus, Download } from "lucide-react";
+import Image from "next/image";
+import { useState, ChangeEvent } from "react";
+
+export default function Home() {
+  // Toggle for mobile preview modal
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  // Form state variables for invoice details
+  const [fromName, setFromName] = useState<string>("STORM RIM INVESTMENT CC");
+  const [invoiceNumber, setInvoiceNumber] = useState<string>("53897658");
+  const [fromEmail, setFromEmail] = useState<string>("rimai0264@gmail.com");
+  const [issueDate, setIssueDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [clientName, setClientName] = useState<string>("EASY FARMING INVESTMENT");
+  const [dueDate, setDueDate] = useState<string>("");
+  const [currency, setCurrency] = useState<string>("N$");
+  const [taxRate, setTaxRate] = useState<number>(0);
+  const [fromAddress, setFromAddress] = useState<string>("P. O Box 24613\nWINDHOEK\nNAMIBIA");
+  const [clientAddress, setClientAddress] = useState<string>("P. O Box 524\nOtjiwarongo\nNamibia");
+  const [vatReg, setVatReg] = useState<string>("CC/2017/10903");
+  const [fromPhone, setFromPhone] = useState<string>("+264 81 2911 535");
+  const [notes, setNotes] = useState<string>("Transport of goods and related services.");
+  const [formError, setFormError] = useState<string>("");
+
+  const logoSrc = "/favicon.ico";
+
+  // State to manage list items on the invoice
+  const [items, setItems] = useState<InvoiceItem[]>([
+    { id: "1", description: "Transport of goods", quantity: 1, price: 0 },
+  ]);
+
+  // Adds a new blank line item row
+  const addItem = (): void => {
+    setItems([
+      ...items,
+      { id: Date.now().toString(), description: "", quantity: 1, price: 0 },
+    ]);
+  };
+
+  // Removes a line item row (keeps at least one)
+  const removeItem = (id: string): void => {
+    if (items.length === 1) return;
+    setItems(items.filter((item: InvoiceItem) => item.id !== id));
+  };
+
+  // Updates a specific property of a specific line item
+  const updateItem = (id: string, field: keyof InvoiceItem, value: string | number): void => {
+    setItems(
+      items.map((item: InvoiceItem) => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  // Validates inputs, creates the PDF, and auto-increments the invoice number
+  const handleDownloadPDF = async (): Promise<void> => {
+    if (!fromName || !clientName || !invoiceNumber) {
+      setFormError("Please fill in all required fields (Business Name, Client Name, Invoice #).");
+      return;
+    }
+    setFormError("");
+
+    await generateInvoicePDF({
+      fromName,
+      invoiceNumber,
+      fromEmail,
+      issueDate,
+      dueDate,
+      clientName,
+      clientAddress,
+      currency,
+      taxRate,
+      fromAddress,
+      vatReg,
+      fromPhone,
+      notes,
+      items,
+      logoSrc,
+    });
+
+    // Automatically increment the invoice number after successful download
+    const parsedNumber = parseInt(invoiceNumber, 10);
+    if (!isNaN(parsedNumber)) {
+      const incremented = parsedNumber + 1;
+      const originalLength = invoiceNumber.length;
+      const newInvoiceStr = incremented.toString();
+      
+      if (invoiceNumber.startsWith("0") && newInvoiceStr.length < originalLength) {
+        setInvoiceNumber(newInvoiceStr.padStart(originalLength, "0"));
+      } else {
+        setInvoiceNumber(newInvoiceStr);
+      }
+    }
+  };
+
+  // Bundle properties together to pass into the preview component
+  const previewProps: GeneratePDFProps = {
+    fromName,
+    invoiceNumber,
+    fromEmail,
+    issueDate,
+    dueDate,
+    clientName,
+    clientAddress,
+    currency,
+    taxRate,
+    fromAddress,
+    vatReg,
+    fromPhone,
+    notes,
+    items,
+    logoSrc,
+  };
+
+  return (
+    <div className="min-h-screen relative gap-2 py-3 px-5 md:px-15 lg:px-25 flex flex-col bg-background text-foreground">
+      {/* App Header with Logo and Theme Toggle */}
+      <div className="h-20 flex justify-between items-center">
+        <div className="flex items-center gap-3 max-w-4xl">
+          <div className="p-2 bg-card rounded-2xl border border-border">
+            <Image 
+              src={logoSrc} 
+              alt="Logo"
+              width={50}
+              height={50}
+              className="w-12 h-12 object-contain"
+            />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">STOMRIM Invoice App</h1>
+            <p className="text-muted-foreground text-sm">
+              Generate clean, tax-compliant invoices instantly
+            </p>
+          </div>
+        </div>
+        <ThemeToggle />
+      </div>
+
+      <div className="flex-1 flex flex-col lg:flex-row gap-5">
+        {/* Main Input Form Panel */}
+        <main className="overflow-y-auto relative flex-1 px-5 py-5 lg:py-6 rounded-2xl border-2 border-border bg-card flex flex-col shadow-md">
+          <div className="flex justify-between items-center h-15 gap-3">
+            <div>
+              <h2 className="text-2xl font-bold">Invoice Details</h2>
+              <p className="text-muted-foreground text-sm">
+                Configure your entity details, client info, items, and billing notes.
+              </p>
+            </div>
+
+            {/* Mobile preview toggle button */}
+            <button 
+              onClick={() => setIsOpen(true)}
+              className="bg-primary text-primary-foreground flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-opacity hover:opacity-90 lg:hidden"
+            >
+              <Play size={16} />
+              Preview
+            </button>
+          </div>
+
+          <div className="flex-1 my-4 space-y-5">
+            {/* Business Name and Invoice # */}
+            <div className="flex gap-5 flex-col md:flex-row">
+              <div className="flex-1 space-y-2">
+                <label className="font-semibold capitalize text-sm">Business Name</label>
+                <input 
+                  type="text" 
+                  value={fromName} 
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setFromName(e.target.value)}
+                  className="border border-border w-full p-3 rounded-xl text-base transition-colors bg-background" 
+                />
+              </div>
+              <div className="flex-1 space-y-2">
+                <label className="font-semibold capitalize text-sm">Invoice #</label>
+                <input 
+                  type="text" 
+                  value={invoiceNumber} 
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setInvoiceNumber(e.target.value)}
+                  className="border border-border w-full p-3 rounded-xl text-base transition-colors bg-background" 
+                />
+              </div>
+            </div>
+
+            {/* Email and Issue Date */}
+            <div className="flex gap-5 flex-col md:flex-row">
+              <div className="flex-1 space-y-2">
+                <label className="font-semibold capitalize text-sm">Email</label>
+                <input 
+                  type="email" 
+                  value={fromEmail} 
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setFromEmail(e.target.value)}
+                  className="border border-border w-full p-3 rounded-xl text-base transition-colors bg-background" 
+                />
+              </div>
+              <div className="flex-1 space-y-2">
+                <label className="font-semibold capitalize text-sm">Invoice Date</label>
+                <input 
+                  type="date" 
+                  value={issueDate} 
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setIssueDate(e.target.value)}
+                  className="border border-border w-full p-3 rounded-xl text-base transition-colors bg-background dark:[color-scheme:dark]" 
+                />
+              </div>
+            </div>
+
+            {/* Client Name and Due Date */}
+            <div className="flex gap-5 flex-col md:flex-row">
+              <div className="flex-1 space-y-2">
+                <label className="font-semibold capitalize text-sm">Client Name</label>
+                <input 
+                  type="text" 
+                  value={clientName} 
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setClientName(e.target.value)}
+                  className="border border-border w-full p-3 rounded-xl text-base transition-colors bg-background" 
+                />
+              </div>
+              <div className="flex-1 space-y-2">
+                <label className="font-semibold capitalize text-sm">Due Date</label>
+                <input 
+                  type="date" 
+                  value={dueDate} 
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setDueDate(e.target.value)}
+                  className="border border-border w-full p-3 rounded-xl text-base transition-colors bg-background dark:[color-scheme:dark]" 
+                />
+              </div>
+            </div>
+            
+            {/* Currency and Tax Rate */}
+            <div className="flex gap-5 flex-col md:flex-row">
+              <div className="flex-1 space-y-2">
+                <label className="font-semibold capitalize text-sm">Currency Symbol</label>
+                <input 
+                  type="text" 
+                  maxLength={3} 
+                  value={currency} 
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setCurrency(e.target.value)}
+                  className="border border-border w-full p-3 rounded-xl text-base transition-colors bg-background" 
+                />
+              </div>
+              <div className="flex-1 space-y-2">
+                <label className="font-semibold capitalize text-sm">VAT (%)</label>
+                <input 
+                  type="number" 
+                  min="0" 
+                  step="0.01" 
+                  value={taxRate} 
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setTaxRate(Number(e.target.value))}
+                  className="border border-border w-full p-3 rounded-xl text-base transition-colors bg-background" 
+                />
+              </div>
+            </div>
+
+            {/* From Address and To Address */}
+            <div className="flex gap-5 flex-col md:flex-row">
+              <div className="flex-1 space-y-2">
+                <label className="font-semibold capitalize text-sm">From Address</label>
+                <textarea 
+                  value={fromAddress} 
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setFromAddress(e.target.value)}
+                  className="border border-border w-full p-3 rounded-xl text-base transition-colors bg-background min-h-24" 
+                />
+              </div>
+              <div className="flex-1 space-y-2">
+                <label className="font-semibold capitalize text-sm">To Address</label>
+                <textarea 
+                  value={clientAddress} 
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setClientAddress(e.target.value)}
+                  className="border border-border w-full p-3 rounded-xl text-base transition-colors bg-background min-h-24" 
+                />
+              </div>
+            </div>
+
+            {/* Line Items Dynamic Section */}
+            <div className="space-y-3">
+              <label className="font-semibold capitalize text-sm">Line Items</label>
+              <div className="space-y-3">
+                {items.map((item: InvoiceItem) => (
+                  <div key={item.id} className="flex gap-3 items-end p-3 border border-border rounded-xl bg-background flex-col md:flex-row">
+                    <div className="flex-1 w-full space-y-1">
+                      <label className="text-xs text-muted-foreground">Description</label>
+                      <input 
+                        type="text" 
+                        value={item.description}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => updateItem(item.id, "description", e.target.value)}
+                        placeholder="Item description"
+                        className="border border-border w-full p-2.5 rounded-lg text-sm bg-card"
+                      />
+                    </div>
+                    <div className="w-full md:w-24 space-y-1">
+                      <label className="text-xs text-muted-foreground">Qty</label>
+                      <input 
+                        type="number" 
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => updateItem(item.id, "quantity", Number(e.target.value))}
+                        className="border border-border w-full p-2.5 rounded-lg text-sm bg-card"
+                      />
+                    </div>
+                    <div className="w-full md:w-32 space-y-1">
+                      <label className="text-xs text-muted-foreground">Unit Price</label>
+                      <input 
+                        type="number" 
+                        min="0"
+                        step="0.01"
+                        value={item.price}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => updateItem(item.id, "price", Number(e.target.value))}
+                        className="border border-border w-full p-2.5 rounded-lg text-sm bg-card"
+                      />
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => removeItem(item.id)}
+                      className="p-2.5 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/25 transition-colors self-end md:self-auto"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button 
+                type="button" 
+                onClick={addItem}
+                className="px-4 py-2 rounded-xl bg-secondary text-secondary-foreground font-medium text-sm flex items-center gap-2 hover:opacity-90 transition-opacity"
+              >
+                <Plus size={16} /> Add item
+              </button>
+            </div>
+
+            {/* VAT Reg and Phone */}
+            <div className="flex gap-5 flex-col md:flex-row">
+              <div className="flex-1 space-y-2">
+                <label className="font-semibold capitalize text-sm">VAT Reg</label>
+                <input 
+                  type="text" 
+                  value={vatReg} 
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setVatReg(e.target.value)}
+                  className="border border-border w-full p-3 rounded-xl text-base transition-colors bg-background" 
+                />
+              </div>
+              <div className="flex-1 space-y-2">
+                <label className="font-semibold capitalize text-sm">Cell / Phone</label>
+                <input 
+                  type="text" 
+                  value={fromPhone} 
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setFromPhone(e.target.value)}
+                  className="border border-border w-full p-3 rounded-xl text-base transition-colors bg-background" 
+                />
+              </div>
+            </div>
+
+            {/* Notes Section */}
+            <div className="space-y-2">
+              <label className="font-semibold capitalize text-sm">Notes</label>
+              <textarea 
+                value={notes} 
+                onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
+                className="border border-border w-full p-3 rounded-xl text-base transition-colors bg-background" 
+              />
+            </div>
+
+            {formError && <p className="text-destructive text-sm font-medium">{formError}</p>}
+          </div>
+
+          {/* Download PDF Action Button */}
+          <div>
+            <button 
+              onClick={handleDownloadPDF}
+              className="px-5 py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-95 transition-opacity"
+            >
+              Download PDF
+            </button>
+          </div>
+        </main>
+
+        {/* Desktop Live Preview Sidebar Panel */}
+        <aside className="hidden lg:flex flex-col flex-1 p-5 rounded-2xl border-2 border-border bg-card shadow-md">
+          <h2 className="text-2xl font-bold mb-1">Live Preview</h2>
+          <p className="text-muted-foreground text-sm mb-4">Instant visual confirmation of your output document.</p>
+          <InvoicePreview {...previewProps} />
+        </aside>
+      </div>
+
+      {/* Mobile Popup Modal for Live Preview */}
+      {isOpen && (
+        <div className="fixed bg-background/90 backdrop-blur-xl w-full h-full top-0 left-0 z-50 p-5 flex flex-col">
+          <div className="h-15 px-5 flex items-center justify-between border-b border-border">
+            <h2 className="text-2xl font-bold">Live Preview</h2>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleDownloadPDF}
+                className="bg-primary text-primary-foreground flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-opacity hover:opacity-95 shadow"
+              >
+                <Download size={16} />
+                Download PDF
+              </button>
+              <button
+                onClick={() => setIsOpen(false)} 
+                className="bg-secondary text-secondary-foreground flex items-center gap-2 p-2.5 rounded-full text-sm font-medium transition-opacity hover:opacity-90"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto mt-4">
+            <InvoicePreview {...previewProps} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+</file>
+
+<file path="AGENTS.md">
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
+</file>
+
+<file path="CLAUDE.md">
+@AGENTS.md
+</file>
+
+<file path="eslint.config.mjs">
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+</file>
+
+<file path="next.config.ts">
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+</file>
+
+<file path="package.json">
+{
+  "name": "invoice-app-design",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
+    "lucide-react": "^1.41.0",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+</file>
+
+<file path="postcss.config.mjs">
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+
+export default config;
+</file>
+
+<file path="README.md">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+</file>
+
+</files>
