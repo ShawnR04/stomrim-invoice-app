@@ -43,7 +43,7 @@ const getBase64ImageFromURL = async (url: string): Promise<string | null> => {
 };
 
 export async function generateInvoicePDF({
-  fromName,
+  fromName = "STOMRIM",
   invoiceNumber,
   fromEmail,
   issueDate,
@@ -83,7 +83,7 @@ export async function generateInvoicePDF({
   // Draw business name and invoice header details
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.text(fromName || "Business Name", textStartX, 20);
+  doc.text(fromName || "STOMRIM", textStartX, 20);
 
   doc.setFontSize(20);
   doc.text("INVOICE", 196, 20, { align: "right" });
@@ -162,14 +162,14 @@ export async function generateInvoicePDF({
     body: tableRows,
     theme: "striped",
     headStyles: {
-      fillColor: headFillColor,
-      textColor: headTextColor,
+      fillColor: headFillColor as unknown as string,
+      textColor: headTextColor as unknown as string,
       fontStyle: "bold",
       fontSize: 9,
     },
     bodyStyles: {
       fontSize: 9,
-      textColor: bodyTextColor,
+      textColor: bodyTextColor as unknown as string,
     },
     columnStyles: {
       0: { cellWidth: "auto" },

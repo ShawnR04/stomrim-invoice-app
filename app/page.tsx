@@ -12,7 +12,7 @@ export default function Home() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   // Form state variables for invoice details
-  const [fromName, setFromName] = useState<string>("STORM RIM INVESTMENT CC");
+  const [fromName, setFromName] = useState<string>("STOMRIM Investment CC");
   const [invoiceNumber, setInvoiceNumber] = useState<string>("53897658");
   const [fromEmail, setFromEmail] = useState<string>("rimai0264@gmail.com");
   const [issueDate, setIssueDate] = useState<string>(new Date().toISOString().split("T")[0]);
@@ -130,7 +130,7 @@ export default function Home() {
             />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">STOMRIM Invoice App</h1>
+            <h1 className="text-2xl font-bold">STOMRIM Investment CC Invoice App</h1>
             <p className="text-muted-foreground text-sm">
               Generate clean, tax-compliant invoices instantly
             </p>
