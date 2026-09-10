@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -12,9 +12,23 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#535759",
+};
+
 export const metadata: Metadata = {
   title: "STOMRIM Investment CC",
-  description: "",
+  description: "Generate clean, tax-compliant invoices instantly",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/logo.png", // Standard browsers
+    apple: "/logo.png", // Tells iOS to use this specific icon
+  },
+  appleWebApp: {
+    capable: true, // Enables the standalone iOS experience
+    title: "STOMRIM", 
+    statusBarStyle: "black-translucent", // Blends the iOS status bar with your app
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
